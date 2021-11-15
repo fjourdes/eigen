@@ -120,6 +120,7 @@ template <typename MatrixType, typename ResultType>
 void matrix_sqrt_quasi_triangular_diagonal(const MatrixType& T, ResultType& sqrtT)
 {
   using std::sqrt;
+  typedef typename MatrixType::Index Index;
   const Index size = T.rows();
   for (Index i = 0; i < size; i++) {
     if (i == size - 1 || T.coeff(i+1, i) == 0) {
@@ -138,6 +139,7 @@ void matrix_sqrt_quasi_triangular_diagonal(const MatrixType& T, ResultType& sqrt
 template <typename MatrixType, typename ResultType>
 void matrix_sqrt_quasi_triangular_off_diagonal(const MatrixType& T, ResultType& sqrtT)
 {
+  typedef typename MatrixType::Index Index;
   const Index size = T.rows();
   for (Index j = 1; j < size; j++) {
       if (T.coeff(j, j-1) != 0)  // if T(j-1:j, j-1:j) is a 2-by-2 block
@@ -204,6 +206,7 @@ template <typename MatrixType, typename ResultType>
 void matrix_sqrt_triangular(const MatrixType &arg, ResultType &result)
 {
   using std::sqrt;
+  typedef typename MatrixType::Index Index;
       typedef typename MatrixType::Scalar Scalar;
 
   eigen_assert(arg.rows() == arg.cols());
@@ -253,19 +256,18 @@ struct matrix_sqrt_compute
 template <typename MatrixType>
 struct matrix_sqrt_compute<MatrixType, 0>
 {
-  typedef typename MatrixType::PlainObject PlainType;
   template <typename ResultType>
   static void run(const MatrixType &arg, ResultType &result)
   {
     eigen_assert(arg.rows() == arg.cols());
 
     // Compute Schur decomposition of arg
-    const RealSchur<PlainType> schurOfA(arg);
-    const PlainType& T = schurOfA.matrixT();
-    const PlainType& U = schurOfA.matrixU();
+    const RealSchur<MatrixType> schurOfA(arg);  
+    const MatrixType& T = schurOfA.matrixT();
+    const MatrixType& U = schurOfA.matrixU();
     
     // Compute square root of T
-    PlainType sqrtT = PlainType::Zero(arg.rows(), arg.cols());
+    MatrixType sqrtT = MatrixType::Zero(arg.rows(), arg.cols());
     matrix_sqrt_quasi_triangular(T, sqrtT);
     
     // Compute square root of arg
@@ -279,19 +281,18 @@ struct matrix_sqrt_compute<MatrixType, 0>
 template <typename MatrixType>
 struct matrix_sqrt_compute<MatrixType, 1>
 {
-  typedef typename MatrixType::PlainObject PlainType;
   template <typename ResultType>
   static void run(const MatrixType &arg, ResultType &result)
   {
     eigen_assert(arg.rows() == arg.cols());
 
     // Compute Schur decomposition of arg
-    const ComplexSchur<PlainType> schurOfA(arg);
-    const PlainType& T = schurOfA.matrixT();
-    const PlainType& U = schurOfA.matrixU();
+    const ComplexSchur<MatrixType> schurOfA(arg);  
+    const MatrixType& T = schurOfA.matrixT();
+    const MatrixType& U = schurOfA.matrixU();
     
     // Compute square root of T
-    PlainType sqrtT;
+    MatrixType sqrtT;
     matrix_sqrt_triangular(T, sqrtT);
     
     // Compute square root of arg
@@ -317,6 +318,7 @@ template<typename Derived> class MatrixSquareRootReturnValue
 : public ReturnByValue<MatrixSquareRootReturnValue<Derived> >
 {
   protected:
+    typedef typename Derived::Index Index;
     typedef typename internal::ref_selector<Derived>::type DerivedNested;
 
   public:
